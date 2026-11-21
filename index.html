@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="View finalized FA marks for B.Tech AI & ML, Section 26." />
+  <title>AIML Section 26 — Finalized FA Marks</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #243247;
+      --muted: #68778b;
+      --accent: #315b83;
+      --accent-strong: #294d70;
+      --border: #dce3ea;
+      --danger: #b54747;
+      --danger-bg: #fff2f1;
+      --danger-border: #efc9c6;
+      --success: #28734d;
+      --success-bg: #eff8f2;
+      --success-border: #c9e5d2;
+      --radius: 14px;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: clamp(16px, 4vw, 48px);
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .container {
+      width: min(100%, 760px);
+      padding: clamp(22px, 4vw, 40px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 35px rgba(35, 52, 72, .08);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 7px 11px;
+      border: 1px solid #d7e2ed;
+      border-radius: 6px;
+      background: #f1f6fb;
+      color: #355b7d;
+      font-size: .78rem;
+      font-weight: 650;
+      letter-spacing: .02em;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #527da5;
+    }
+
+    h1 {
+      margin: 0;
+      color: #1f3045;
+      font-size: clamp(1.65rem, 4vw, 2.15rem);
+      line-height: 1.2;
+      letter-spacing: -.025em;
+    }
+
+    .subtitle {
+      margin: 10px 0 26px;
+      color: var(--muted);
+      font-size: clamp(.9rem, 2vw, 1rem);
+      line-height: 1.65;
+    }
+
+    .search-panel {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-soft);
+    }
+
+    .field-label {
+      display: block;
+      margin: 0 0 9px 2px;
+      color: #34465c;
+      font-size: .86rem;
+      font-weight: 650;
+    }
+
+    .search-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+    }
+
+    input {
+      flex: 1 1 240px;
+      min-width: 0;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid #cbd5df;
+      border-radius: 8px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+      text-transform: uppercase;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    input::placeholder { color: #91a0b1; text-transform: none; }
+    input:focus {
+      border-color: #6689aa;
+      box-shadow: 0 0 0 3px rgba(75, 115, 153, .13);
+    }
+
+    button {
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--accent-strong);
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      transition: background .18s, transform .18s, opacity .18s;
+    }
+
+    button:hover:not(:disabled) { background: var(--accent-strong); }
+    button:active:not(:disabled) { transform: translateY(1px); }
+    button:focus-visible { outline: 3px solid rgba(75, 115, 153, .28); outline-offset: 3px; }
+    button:disabled { opacity: .65; cursor: wait; }
+
+    #status {
+      min-height: 1.4em;
+      margin: 13px 2px 0;
+      color: var(--danger);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    .result-card {
+      display: none;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .student-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
+      margin-bottom: 16px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .student-header .name {
+      color: #24364c;
+      font-size: 1.05rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .student-header .reg {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #e8edf2;
+      font-size: .93rem;
+    }
+    tr:last-child th, tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(even) { background: #fafbfd; }
+    th {
+      color: #43546a;
+      font-weight: 550;
+      text-align: left;
+    }
+    td {
+      color: #26384d;
+      font-weight: 700;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .max-hint { color: #8794a4; font-weight: 450; font-size: .82rem; }
+    tr.r-row th, tr.r-row td { color: var(--danger); }
+    .r-tag {
+      display: inline-block;
+      margin-left: 7px;
+      padding: 3px 7px;
+      border: 1px solid var(--danger-border);
+      border-radius: 5px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      font-size: .72rem;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    .grade-notice {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 9px;
+      font-size: .9rem;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .grade-notice.r-alert {
+      border: 1px solid var(--danger-border);
+      background: var(--danger-bg);
+      color: #923b36;
+    }
+    .grade-notice.pass-alert {
+      border: 1px solid var(--success-border);
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .footer-note {
+      margin: 22px 0 0;
+      color: #8794a4;
+      font-size: .78rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      body { padding: 14px; align-items: start; }
+      .container {
+        margin: 12px 0;
+        padding: 22px 16px;
+        border-radius: 12px;
+      }
+      .eyebrow { font-size: .72rem; margin-bottom: 15px; }
+      .subtitle { margin-bottom: 21px; }
+      .search-panel { padding: 14px; }
+      .search-box { flex-direction: column; }
+      input, button { width: 100%; min-height: 48px; }
+      button { padding: 0 18px; }
+      .student-header { padding: 14px; }
+      th, td { padding: 12px 10px; font-size: .86rem; }
+      .r-tag { margin-left: 4px; font-size: .68rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>B.Tech AI &amp; ML <span aria-hidden="true">•</span> Year 1 Sem 2 <span aria-hidden="true">•</span> Section 26</div>
+    <h1>Finalized FA Marks</h1>
+    <p class="subtitle">Check your subject-wise marks using your registration number. Each subject is out of 60 marks, with 30 marks required to pass.</p>
+
+    <section class="search-panel" aria-label="Find student marks">
+      <form class="search-box" id="searchForm">
+        <label class="field-label" for="regInput">Registration number</label>
+        <input type="text" id="regInput" placeholder="e.g. 251FA18009" autocomplete="off" autocapitalize="characters" required />
+        <button type="submit" id="searchBtn">View marks</button>
+      </form>
+    </section>
+
+    <div id="status" role="status" aria-live="polite"></div>
+
+    <section class="result-card" id="resultCard" aria-live="polite">
+      <div class="student-header">
+        <div>
+          <div class="name" id="studentName"></div>
+          <div class="reg" id="studentReg"></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="marksTable" aria-label="Subject-wise FA marks"></table>
+      </div>
+      <div id="gradeNotice" class="grade-notice"></div>
+    </section>
+
+    <p class="footer-note">AIML Section 26 · Finalized FA marks</p>
+  </main>
+
+  <script>
+    const EXCEL_URL = "https://ikpemutcspprctmqumhd.supabase.co/storage/v1/object/public/marks/sec26_fa_marks.xlsx";
+    const SHEET_NAME = "FA_Marks";
+    const CORE_SUBJECTS = ["PSUP", "EC", "BEEE", "MS", "CODE", "CS", "EPACS", "DIY", "COI", "ICH"];
+    const PASS_MARK = 30;
+    const MAX_MARK = 60;
+
+    let cachedRows = null;
+
+    function parseMark(val) {
+      if (val === null || val === undefined || val === "") return null;
+      const num = Number(String(val).replace(",", ".").trim());
+      return Number.isFinite(num) ? num : null;
+    }
+
+    async function loadMarksData() {
+      if (cachedRows) return cachedRows;
+      const response = await fetch(`${EXCEL_URL}?t=${Date.now()}`);
+      if (!response.ok) throw new Error("Could not fetch marks sheet. Please try again later.");
+
+      const buffer = await response.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const targetSheet = workbook.Sheets[SHEET_NAME] || workbook.Sheets[workbook.SheetNames[0]];
+      cachedRows = XLSX.utils.sheet_to_json(targetSheet, { defval: "" });
+      return cachedRows;
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const regNo = document.getElementById("regInput").value.trim().toUpperCase();
+      const statusEl = document.getElementById("status");
+      const resultCard = document.getElementById("resultCard");
+      const tableEl = document.getElementById("marksTable");
+      const noticeEl = document.getElementById("gradeNotice");
+      const btn = document.getElementById("searchBtn");
+
+      statusEl.textContent = "";
+      resultCard.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "Loading…";
+
+      try {
+        const rows = await loadMarksData();
+        const student = rows.find(
+          (r) => String(r.REGD_NO || "").trim().toUpperCase() === regNo
+        );
+
+        if (!student) {
+          statusEl.textContent = `No record found for "${regNo}". Check your registration number and try again.`;
+          return;
+        }
+
+        document.getElementById("studentName").textContent = student.NAME || "Student";
+        document.getElementById("studentReg").textContent = `Regd. No: ${student.REGD_NO} • SL: ${student.SL ?? "-"}`;
+
+        const subjectEntries = CORE_SUBJECTS.map((subj) => ({
+          label: subj,
+          mark: parseMark(student[subj])
+        }));
+
+        const electiveLabel = String(student.LS_ELECTIVE || "Life Skills Elective").trim();
+        subjectEntries.push({
+          label: electiveLabel,
+          mark: parseMark(student.LS_MARKS)
+        });
+
+        const rSubjects = [];
+        const rowsHtml = subjectEntries.map(({ label, mark }) => {
+          if (mark === null) {
+            return `<tr><th scope="row">${escapeHtml(label)}</th><td>—</td></tr>`;
+          }
+          const isRGrade = mark < PASS_MARK;
+          if (isRGrade) rSubjects.push(`${label} (${mark.toFixed(1)}/${MAX_MARK})`);
+
+          return `
+            <tr class="${isRGrade ? "r-row" : ""}">
+              <th scope="row">${escapeHtml(label)}</th>
+              <td>
+                ${mark.toFixed(1)} <span class="max-hint">/ ${MAX_MARK}</span>
+                ${isRGrade ? '<span class="r-tag">R Grade</span>' : ""}
+              </td>
+            </tr>
+          `;
+        });
+
+        tableEl.innerHTML = rowsHtml.join("");
+
+        if (rSubjects.length > 0) {
+          noticeEl.className = "grade-notice r-alert";
+          noticeEl.textContent = `R Grade Alert: Below ${PASS_MARK}/${MAX_MARK} in ${rSubjects.join(", ")}. These subjects are marked as R Grade.`;
+        } else {
+          noticeEl.className = "grade-notice pass-alert";
+          noticeEl.textContent = `Cleared all subjects (${PASS_MARK} or above out of ${MAX_MARK} in every subject).`;
+        }
+
+        resultCard.style.display = "block";
+      } catch (err) {
+        statusEl.textContent = err.message || "Something went wrong. Please try again.";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "View marks";
+      }
+    });
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+  </script>
+</body>
+</html>
