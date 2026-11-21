@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIML Section 26 — Finalized FA Marks</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --border: #334155;
+      --error: #f87171;
+      --error-bg: rgba(239, 68, 68, 0.14);
+      --error-border: rgba(239, 68, 68, 0.4);
+      --ok-bg: rgba(34, 197, 94, 0.12);
+      --ok-border: rgba(34, 197, 94, 0.35);
+      --ok-text: #4ade80;
+    }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 540px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    h1 { margin: 0 0 0.25rem; font-size: 1.35rem; }
+    p.subtitle { margin: 0 0 1.5rem; color: var(--muted); font-size: 0.9rem; }
+    .search-box { display: flex; gap: 0.5rem; }
+    input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      text-transform: uppercase;
+    }
+    input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+    button {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    #status { margin-top: 1rem; font-size: 0.9rem; color: var(--error); }
+    .result-card {
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.25rem;
+      display: none;
+    }
+    .student-header {
+      background: var(--bg);
+      padding: 0.9rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+    .student-header .name { font-size: 1.05rem; font-weight: 700; }
+    .student-header .reg { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    th { color: var(--muted); font-weight: 500; }
+    td { font-weight: 600; text-align: right; }
+    .max-hint { color: var(--muted); font-weight: 400; font-size: 0.82rem; }
+    tr.r-row th, tr.r-row td { color: var(--error); }
+    .r-tag {
+      display: inline-block;
+      margin-left: 0.45rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error);
+    }
+    .grade-notice {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .grade-notice.r-alert {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: #fecaca;
+    }
+    .grade-notice.pass-alert {
+      background: var(--ok-bg);
+      border: 1px solid var(--ok-border);
+      color: var(--ok-text);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">B.Tech AI & ML • Year 1 Sem 2 • Section 26</span>
+    <h1>Finalized FA Marks</h1>
+    <p class="subtitle">Each subject is evaluated out of 60 marks (Minimum pass: 30)</p>
+
+    <form class="search-box" id="searchForm">
+      <input type="text" id="regInput" placeholder="e.g. 251FA18009" required />
+      <button type="submit" id="searchBtn">View</button>
+    </form>
+
+    <div id="status"></div>
+
+    <div class="result-card" id="resultCard">
+      <div class="student-header">
+        <div class="name" id="studentName"></div>
+        <div class="reg" id="studentReg"></div>
+      </div>
+      <table id="marksTable"></table>
+      <div id="gradeNotice"></div>
+    </div>
+  </div>
+
+  <script>
+    const EXCEL_URL = "https://ikpemutcspprctmqumhd.supabase.co/storage/v1/object/public/marks/sec26_fa_marks.xlsx";
+    const SHEET_NAME = "FA_Marks";
+    const CORE_SUBJECTS = ["PSUP", "EC", "BEEE", "MS", "CODE", "CS", "EPACS", "DIY", "COI", "ICH"];
+    const PASS_MARK = 30;
+    const MAX_MARK = 60;
+
+    let cachedRows = null;
+
+    function parseMark(val) {
+      if (val === null || val === undefined || val === "") return null;
+      const num = Number(String(val).replace(",", ".").trim());
+      return Number.isFinite(num) ? num : null;
+    }
+
+    async function loadMarksData() {
+      if (cachedRows) return cachedRows;
+      const response = await fetch(`${EXCEL_URL}?t=${Date.now()}`);
+      if (!response.ok) throw new Error("Could not fetch marks sheet from Supabase Storage.");
+
+      const buffer = await response.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const targetSheet = workbook.Sheets[SHEET_NAME] || workbook.Sheets[workbook.SheetNames[0]];
+      cachedRows = XLSX.utils.sheet_to_json(targetSheet, { defval: "" });
+      return cachedRows;
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const regNo = document.getElementById("regInput").value.trim().toUpperCase();
+      const statusEl = document.getElementById("status");
+      const resultCard = document.getElementById("resultCard");
+      const tableEl = document.getElementById("marksTable");
+      const noticeEl = document.getElementById("gradeNotice");
+      const btn = document.getElementById("searchBtn");
+
+      statusEl.textContent = "";
+      resultCard.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "Loading...";
+
+      try {
+        const rows = await loadMarksData();
+        const student = rows.find(
+          (r) => String(r.REGD_NO || "").trim().toUpperCase() === regNo
+        );
+
+        if (!student) {
+          statusEl.textContent = `No record found for "${regNo}". Check your registration number and try again.`;
+          return;
+        }
+
+        document.getElementById("studentName").textContent = student.NAME || "Student";
+        document.getElementById("studentReg").textContent = `Regd. No: ${student.REGD_NO} • SL: ${student.SL ?? "-"}`;
+
+        const subjectEntries = CORE_SUBJECTS.map((subj) => ({
+          label: subj,
+          mark: parseMark(student[subj])
+        }));
+
+        const electiveLabel = String(student.LS_ELECTIVE || "Life Skills Elective").trim();
+        subjectEntries.push({
+          label: electiveLabel,
+          mark: parseMark(student.LS_MARKS)
+        });
+
+        const rSubjects = [];
+        const rowsHtml = subjectEntries.map(({ label, mark }) => {
+          if (mark === null) {
+            return `<tr><th>${label}</th><td>-</td></tr>`;
+          }
+          const isRGrade = mark < PASS_MARK;
+          if (isRGrade) rSubjects.push(`${label} (${mark.toFixed(1)}/${MAX_MARK})`);
+
+          return `
+            <tr class="${isRGrade ? "r-row" : ""}">
+              <th>${label}</th>
+              <td>
+                ${mark.toFixed(1)} <span class="max-hint">/ ${MAX_MARK}</span>
+                ${isRGrade ? '<span class="r-tag">R Grade</span>' : ""}
+              </td>
+            </tr>
+          `;
+        });
+
+        tableEl.innerHTML = rowsHtml.join("");
+
+        if (rSubjects.length > 0) {
+          noticeEl.className = "grade-notice r-alert";
+          noticeEl.innerHTML = `<strong>R Grade Alert:</strong> You scored below ${PASS_MARK} out of ${MAX_MARK} in <strong>${rSubjects.join(", ")}</strong>, which is marked as <strong>R Grade</strong>.`;
+        } else {
+          noticeEl.className = "grade-notice pass-alert";
+          noticeEl.textContent = `Cleared all subjects (${PASS_MARK} or above out of ${MAX_MARK} in every subject).`;
+        }
+
+        resultCard.style.display = "block";
+      } catch (err) {
+        statusEl.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "View";
+      }
+    });
+  </script>
+</body>
+</html>
